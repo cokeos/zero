@@ -22,6 +22,8 @@ const (
 	LabelKey   = "cokeos.io/zero-managed"
 	LabelValue = "true"
 
+	UniqLabelKey = "cokeos.io/zero-id"
+
 	NodeGPUModelKey = "cokeos.io/gpu-model"
 
 	DefaultGPUNumber = "0"
@@ -124,7 +126,8 @@ func generatePod(unit *corev1.Unit) *v1.Pod {
 			Namespace: unit.Namespace,
 			Name:      unit.Name,
 			Labels: map[string]string{
-				LabelKey: LabelValue,
+				LabelKey:     LabelValue,
+				UniqLabelKey: unit.Namespace + "/" + unit.Name,
 			},
 		},
 		Spec: v1.PodSpec{
