@@ -61,11 +61,19 @@ func (r *UnitReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	// 删除逻辑
 	if unitErr != nil {
 		if apierrors.IsNotFound(unitErr) {
-			return ctrl.Result{}, r.Delete(ctx, pod)
+			if err := r.Delete(ctx, pod); err != nil {
+				klog.Error(err)
+			}
+		} else {
+			klog.Error(unitErr)
 		}
+		return ctrl.Result{}, nil
 	}
 	if unit.DeletionTimestamp != nil {
-		return ctrl.Result{}, r.Delete(ctx, pod)
+		if err := r.Delete(ctx, pod); err != nil {
+			klog.Error(err)
+		}
+		return ctrl.Result{}, nil
 	}
 
 	// 创建逻辑
@@ -73,6 +81,8 @@ func (r *UnitReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		if apierrors.IsNotFound(podErr) {
 			pod = generatePod(unit)
 			return ctrl.Result{}, r.Create(ctx, pod)
+		} else {
+			klog.Error(podErr)
 		}
 	}
 

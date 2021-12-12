@@ -18,8 +18,12 @@ package main
 
 import (
 	"flag"
-	"github.com/cokeos/zero/controllers/unit"
+	"github.com/cokeos/zero/controllers/tiny"
 	"os"
+
+	"github.com/cokeos/zero/controllers/tunnel"
+
+	"github.com/cokeos/zero/controllers/unit"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -86,6 +90,20 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr, stopCh); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Unit")
+		os.Exit(1)
+	}
+	if err = (&tunnel.TunnelReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr, stopCh); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Tunnel")
+		os.Exit(1)
+	}
+	if err = (&tiny.TinyReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Tiny")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

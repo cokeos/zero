@@ -9,6 +9,58 @@ rules:
 - apiGroups:
   - core.cokeos.io
   resources:
+  - tinies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - core.cokeos.io
+  resources:
+  - tinies/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - core.cokeos.io
+  resources:
+  - tinies/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - core.cokeos.io
+  resources:
+  - tunnels
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - core.cokeos.io
+  resources:
+  - tunnels/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - core.cokeos.io
+  resources:
+  - tunnels/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - core.cokeos.io
+  resources:
   - units
   verbs:
   - create

@@ -13,4 +13,22 @@ resources:
   kind: Unit
   path: github.com/cokeos/zero/api/v1
   version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: cokeos.io
+  group: core
+  kind: Tunnel
+  path: github.com/cokeos/zero/api/v1
+  version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: cokeos.io
+  group: core
+  kind: Tiny
+  path: github.com/cokeos/zero/api/v1
+  version: v1
 version: "3"
