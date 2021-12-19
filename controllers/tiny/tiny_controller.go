@@ -19,6 +19,7 @@ package tiny
 import (
 	"context"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog/v2"
 	"sync"
@@ -103,6 +104,10 @@ func (r *TinyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			if err := r.Create(ctx, tunnel); err != nil {
 				klog.Error(err)
 			}
+			tiny.Status.NodePort = port
+			if err := r.Status().Update(ctx, tiny); err != nil {
+				klog.Error(err)
+			}
 		}
 	}
 
@@ -113,6 +118,7 @@ func (r *TinyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 func (r *TinyReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	r.InitNodeMap()
 	go wait.Forever(r.UpdatePortMap, time.Minute)
+	go wait.Forever(r.SyncTiny, time.Minute)
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&corev1.Tiny{}).
 		Complete(r)
@@ -155,4 +161,33 @@ func (r *TinyReconciler) FindSSHAvailablePort() int32 {
 		}
 	}
 	return -1
+}
+
+func (r *TinyReconciler) SyncTiny() {
+	var (
+		ctx  = context.TODO()
+		list = &corev1.TinyList{}
+	)
+	err := r.List(ctx, list)
+	if err != nil {
+		klog.Errorf("List Unit Error: %v", err)
+		return
+	}
+	for _, tiny := range list.Items {
+		unit := &corev1.Unit{}
+		err = r.Get(ctx, types.NamespacedName{
+			Name:      tiny.GetName(),
+			Namespace: tiny.GetNamespace(),
+		}, unit)
+		if err != nil {
+			klog.Errorf("Get Unit Error: %v", err)
+			continue
+		}
+		tiny.Status.Phase = unit.Status.Phase
+		err = r.Status().Update(ctx, tiny.DeepCopy())
+		if err != nil {
+			klog.Errorf("Update Tiny Phase Error: %v", err)
+		}
+	}
+
 }
