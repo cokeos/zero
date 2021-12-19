@@ -3,4 +3,7 @@ kind: Tiny
 metadata:
   name: tiny-sample
 spec:
-  # TODO(user): Add fields here
+  gpu: true
+  framework:
+    name: tensorflow
+    version: "2.0"

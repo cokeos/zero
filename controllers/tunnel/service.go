@@ -27,8 +27,9 @@ func generateService(tunnel *corev1.Tunnel) *v1.Service {
 			},
 		},
 		Spec: v1.ServiceSpec{
+			Type: v1.ServiceTypeNodePort,
 			Selector: map[string]string{
-				UniqLabelKey: tunnel.GetNamespace() + "/" + tunnel.Spec.UnitName,
+				UniqLabelKey: tunnel.Spec.UnitName,
 			},
 			Ports: tunnel.Spec.Ports,
 		},

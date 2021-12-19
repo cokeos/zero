@@ -79,7 +79,7 @@ func (r *TunnelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	if serviceErr != nil {
-		if apierrors.IsNotFound(tunnelErr) {
+		if apierrors.IsNotFound(serviceErr) {
 			service = generateService(tunnel)
 			return ctrl.Result{}, r.Create(ctx, service)
 		} else {

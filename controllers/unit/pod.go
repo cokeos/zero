@@ -29,6 +29,8 @@ const (
 	DefaultGPUNumber = "0"
 
 	DefaultGPUModel = "GTX-1660"
+	GPUModelTitan   = "GTX-Titan-Xp"
+	GPUModel3090    = "RTX-3090"
 )
 
 func defaultGpuModelList() []string {
@@ -127,7 +129,7 @@ func generatePod(unit *corev1.Unit) *v1.Pod {
 			Name:      unit.Name,
 			Labels: map[string]string{
 				LabelKey:     LabelValue,
-				UniqLabelKey: unit.Namespace + "/" + unit.Name,
+				UniqLabelKey: unit.Namespace + "." + unit.Name,
 			},
 		},
 		Spec: v1.PodSpec{
@@ -161,7 +163,7 @@ func generatePod(unit *corev1.Unit) *v1.Pod {
 					Name: unit.Name + "-vol",
 					VolumeSource: v1.VolumeSource{
 						HostPath: &v1.HostPathVolumeSource{
-							Path: DefaultGlusterPath + unit.Namespace,
+							Path: DefaultGlusterPath + "/" + unit.Namespace,
 						},
 					},
 				},
