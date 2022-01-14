@@ -20,6 +20,7 @@ import (
 	"context"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -81,7 +82,17 @@ func (r *TunnelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if serviceErr != nil {
 		if apierrors.IsNotFound(serviceErr) {
 			service = generateService(tunnel)
-			return ctrl.Result{}, r.Create(ctx, service)
+			if err := r.Create(ctx, service); err != nil {
+				tunnel.Status.Conditions = []metav1.Condition{
+					{
+						Type:    "Error",
+						Status:  metav1.ConditionTrue,
+						Message: err.Error(),
+					},
+				}
+				return ctrl.Result{}, r.Update(ctx, tunnel)
+			}
+			return ctrl.Result{}, nil
 		} else {
 			klog.Error(serviceErr)
 		}
