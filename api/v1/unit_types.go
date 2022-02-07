@@ -27,28 +27,51 @@ const (
 
 // UnitSpec defines the desired state of Unit
 type UnitSpec struct {
-	GPUPolicy    GPUPolicy          `json:"gpuPolicy"`
-	Framework    Framework          `json:"framework"`
-	ResourceList v1.ResourceList    `json:"resourceList"`
-	Ports        []v1.ContainerPort `json:"ports,omitempty"`
-	Execution    Execution          `json:"execution"`
+	// GPUPolicy GPU 策略
+	GPUPolicy GPUPolicy `json:"gpuPolicy"`
+	// Framework 机器学习框架
+	Framework Framework `json:"framework"`
+	// ResourceList 资源配额
+	ResourceList v1.ResourceList `json:"resourceList"`
+	// LifeCycle 生命周期
+	LifeCycle LifeCycle `json:"lifeCycle"`
+	// Ports 端口映射
+	Ports []v1.ContainerPort `json:"ports,omitempty"`
+	// Execution 执行参数
+	Execution Execution `json:"execution"`
+}
+
+type LifeCycle struct {
+	// Days 运行时间
+	Days int `json:"days"`
+	// Forever 永久运行
+	Forever bool `json:"forever"`
 }
 
 type GPUPolicy struct {
-	GPU    bool   `json:"gpu"`
-	Model  string `json:"model,omitempty"`
-	Number int    `json:"number"`
+	// GPU 是否启用GPU
+	GPU bool `json:"gpu"`
+	// Model GPU 型号
+	Model string `json:"model,omitempty"`
+	// Number GPU 数量
+	Number int `json:"number"`
 }
 
 type Execution struct {
-	SSH     bool        `json:"ssh"`
-	Env     []v1.EnvVar `json:"env,omitempty"`
-	Command []string    `json:"command,omitempty"`
-	Args    []string    `json:"args,omitempty"`
+	// SSH 启动 SSH
+	SSH bool `json:"ssh"`
+	// Env 环境变量
+	Env []v1.EnvVar `json:"env,omitempty"`
+	// Command 执行命令
+	Command []string `json:"command,omitempty"`
+	// Args 命令参数
+	Args []string `json:"args,omitempty"`
 }
 
 type Framework struct {
-	Name    string `json:"name"`
+	// Name 框架名称
+	Name string `json:"name"`
+	// Version 框架版本
 	Version string `json:"version"`
 }
 

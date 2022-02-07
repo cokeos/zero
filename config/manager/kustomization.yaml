@@ -13,4 +13,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: ccr.ccs.tencentyun.com/njupt-isl/zero
-  newTag: v0.0.1
+  newTag: v0.0.2
