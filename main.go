@@ -18,8 +18,10 @@ package main
 
 import (
 	"flag"
-	"github.com/cokeos/zero/controllers/tiny"
+	"github.com/cokeos/zero/controllers/image"
 	"os"
+
+	"github.com/cokeos/zero/controllers/tiny"
 
 	"github.com/cokeos/zero/controllers/tunnel"
 
@@ -104,6 +106,13 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Tiny")
+		os.Exit(1)
+	}
+	if err = (&image.ImageReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Image")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

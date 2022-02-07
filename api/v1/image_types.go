@@ -17,44 +17,48 @@ limitations under the License.
 package v1
 
 import (
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// TinySpec defines the desired state of Tiny
-type TinySpec struct {
-	GPU       bool      `json:"gpu"`
-	Framework Framework `json:"framework"`
-	Days      int       `json:"days"`
+// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
+// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+
+// ImageSpec defines the desired state of Image
+type ImageSpec struct {
+	GPUConfig Config `json:"GPUConfig"`
+	CPUConfig Config `json:"CPUConfig"`
 }
 
-// TinyStatus defines the observed state of Tiny
-type TinyStatus struct {
-	Phase    v1.PodPhase `json:"phase,omitempty"`
-	NodePort int32       `json:"nodePort,omitempty"`
+type Config struct {
+	ImageName   string `json:"imageName"`
+	Description string `json:"description"`
+}
+
+// ImageStatus defines the observed state of Image
+type ImageStatus struct {
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// Tiny is the Schema for the tinies API
-type Tiny struct {
+// Image is the Schema for the images API
+type Image struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   TinySpec   `json:"spec,omitempty"`
-	Status TinyStatus `json:"status,omitempty"`
+	Spec   ImageSpec   `json:"spec,omitempty"`
+	Status ImageStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// TinyList contains a list of Tiny
-type TinyList struct {
+// ImageList contains a list of Image
+type ImageList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Tiny `json:"items"`
+	Items           []Image `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Tiny{}, &TinyList{})
+	SchemeBuilder.Register(&Image{}, &ImageList{})
 }

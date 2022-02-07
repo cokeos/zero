@@ -1,10 +1,12 @@
 package unit
 
 import (
+	"context"
 	corev1 "github.com/cokeos/zero/api/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/klog/v2"
 	"strconv"
 )
@@ -39,20 +41,24 @@ func defaultGpuModelList() []string {
 	}
 }
 
-func getPodImage(unit *corev1.Unit) string {
-	if unit.Spec.GPUPolicy.GPU {
-		return "ccr.ccs.tencentyun.com/njupt-isl/" +
-			unit.Spec.Framework.Name +
-			"-gpu:" +
-			unit.Spec.Framework.Version
+func (r *UnitReconciler) getPodImage(ctx context.Context, unit *corev1.Unit) (string, error) {
+	image := &corev1.Image{}
+	imageName := unit.Spec.Framework.Name + "-" + unit.Spec.Framework.Version
+	err := r.Get(ctx, types.NamespacedName{
+		Name: imageName,
+	}, image)
+	if err != nil {
+		return "", err
 	}
-	return "ccr.ccs.tencentyun.com/njupt-isl/" +
-		unit.Spec.Framework.Name +
-		"-cpu:" +
-		unit.Spec.Framework.Version
+	if unit.Spec.GPUPolicy.GPU {
+		return image.Spec.GPUConfig.ImageName, nil
+	} else {
+		return image.Spec.CPUConfig.ImageName, nil
+	}
 }
 
-func generatePod(unit *corev1.Unit) *v1.Pod {
+func (r *UnitReconciler) generatePod(ctx context.Context, unit *corev1.Unit) *v1.Pod {
+
 	// 环境变量检测
 	env := unit.Spec.Execution.Env
 	if len(env) == 0 {
@@ -62,6 +68,7 @@ func generatePod(unit *corev1.Unit) *v1.Pod {
 		Name:  PythonEnvKey,
 		Value: PythonEnvValue,
 	})
+
 	// 亲和标签
 	model := make([]string, 0)
 	if unit.Spec.GPUPolicy.GPU {
@@ -94,12 +101,14 @@ func generatePod(unit *corev1.Unit) *v1.Pod {
 	gpu, err := resource.ParseQuantity(strconv.Itoa(unit.Spec.GPUPolicy.Number))
 	if err != nil {
 		klog.Error(err)
+		return nil
 	}
 	if !unit.Spec.GPUPolicy.GPU {
 		gpu, err = resource.ParseQuantity(DefaultGPUNumber)
 		if err != nil {
 			klog.Error(err)
 		}
+		return nil
 	}
 
 	// 端口检测
@@ -117,6 +126,13 @@ func generatePod(unit *corev1.Unit) *v1.Pod {
 	if unit.Spec.Execution.SSH {
 		command = nil
 		args = nil
+	}
+
+	// image 检测
+	image, err := r.getPodImage(ctx, unit)
+	if err != nil {
+		klog.Error(err)
+		return nil
 	}
 
 	return &v1.Pod{
@@ -138,7 +154,7 @@ func generatePod(unit *corev1.Unit) *v1.Pod {
 			Containers: []v1.Container{
 				{
 					Name:    unit.Name,
-					Image:   getPodImage(unit),
+					Image:   image,
 					Env:     env,
 					Ports:   ports,
 					Command: command,

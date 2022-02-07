@@ -9,12 +9,20 @@ import (
 )
 
 func generateUnit(tiny *corev1.Tiny) *corev1.Unit {
+	days := tiny.Spec.Days
+	if days == 0 {
+		days = DefaultDays
+	}
 	return &corev1.Unit{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: tiny.GetNamespace(),
 			Name:      tiny.GetName(),
 		},
 		Spec: corev1.UnitSpec{
+			LifeCycle: corev1.LifeCycle{
+				Forever: false,
+				Days:    days,
+			},
 			Framework: tiny.Spec.Framework,
 			GPUPolicy: corev1.GPUPolicy{
 				GPU:    tiny.Spec.GPU,
@@ -35,6 +43,8 @@ func generateUnit(tiny *corev1.Tiny) *corev1.Unit {
 const (
 	SSH     = "ssh"
 	SSHPort = 22
+
+	DefaultDays = 7
 )
 
 func generateTunnel(tiny *corev1.Tiny, port int32) *corev1.Tunnel {

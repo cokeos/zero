@@ -1,0 +1,6 @@
+apiVersion: core.cokeos.io/v1
+kind: Image
+metadata:
+  name: image-sample
+spec:
+  # TODO(user): Add fields here

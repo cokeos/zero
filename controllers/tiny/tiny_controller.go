@@ -183,6 +183,15 @@ func (r *TinyReconciler) SyncTiny() {
 			klog.Errorf("Get Unit Error: %v", err)
 			continue
 		}
+
+		if tiny.Spec.Days != 0 && tiny.CreationTimestamp.Add(
+			time.Duration(tiny.Spec.Days*24)*time.Hour).Before(time.Now()) {
+			err = r.Delete(ctx, tiny.DeepCopy())
+			if err != nil {
+				klog.Errorf("Delete Tiny Error: %v", err)
+			}
+		}
+
 		tiny.Status.Phase = unit.Status.Phase
 		err = r.Status().Update(ctx, tiny.DeepCopy())
 		if err != nil {

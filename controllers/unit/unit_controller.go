@@ -79,7 +79,11 @@ func (r *UnitReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	// 创建逻辑
 	if podErr != nil {
 		if apierrors.IsNotFound(podErr) {
-			pod = generatePod(unit)
+			pod = r.generatePod(ctx, unit)
+			if pod == nil {
+				klog.Errorf("Pod is Null When Process Unit: %v/%v", unit.GetNamespace(), unit.GetName())
+				return ctrl.Result{}, nil
+			}
 			return ctrl.Result{}, r.Create(ctx, pod)
 		} else {
 			klog.Error(podErr)
@@ -124,14 +128,25 @@ func (r *UnitReconciler) SyncPods() {
 			Namespace: pod.GetNamespace(),
 		}, unit)
 		if err != nil {
-			klog.Errorf("Get Unit Error: %v", err)
+			klog.Errorf("Get Unit:%v Phase Error: %v", pod.GetNamespace()+"/"+pod.GetName(), err)
 			continue
 		}
+
+		// 检测生命周期
+		if !unit.Spec.LifeCycle.Forever && unit.Spec.LifeCycle.Days != 0 && unit.CreationTimestamp.Add(
+			time.Duration(unit.Spec.LifeCycle.Days*24)*time.Hour).Before(time.Now()) {
+			err = r.Delete(ctx, unit.DeepCopy())
+			if err != nil {
+				klog.Errorf("Delete Unit:%v Phase Error: %v", unit.GetNamespace()+"/"+unit.GetName(), err)
+			}
+			continue
+		}
+
+		// 状态更新
 		unit.Status.Phase = pod.Status.Phase
 		err = r.Status().Update(ctx, unit)
 		if err != nil {
-			klog.Errorf("Update Unit Phase Error: %v", err)
+			klog.Errorf("Update Unit:%v Phase Error: %v", unit.GetNamespace()+"/"+unit.GetName(), err)
 		}
 	}
-
 }
