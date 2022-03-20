@@ -16,6 +16,8 @@ const (
 	SSH     = "ssh"
 	SSHPort = 22
 
+	DeafaultShmMountPath = "/dev/shm"
+
 	DefaultMountPath   = "/data"
 	DefaultGlusterPath = "/data"
 
@@ -119,6 +121,9 @@ func generatePod(unit *corev1.Unit) *v1.Pod {
 		args = nil
 	}
 
+	// 默认Shm 共享内存大小
+	shmSharedMemory := resource.MustParse("32Gi")
+
 	return &v1.Pod{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -155,6 +160,10 @@ func generatePod(unit *corev1.Unit) *v1.Pod {
 							Name:      unit.Name + "-vol",
 							MountPath: DefaultMountPath,
 						},
+						{
+							Name:      unit.Name + "-shm",
+							MountPath: DeafaultShmMountPath,
+						},
 					},
 				},
 			},
@@ -164,6 +173,15 @@ func generatePod(unit *corev1.Unit) *v1.Pod {
 					VolumeSource: v1.VolumeSource{
 						HostPath: &v1.HostPathVolumeSource{
 							Path: DefaultGlusterPath + "/" + unit.Namespace,
+						},
+					},
+				},
+				{
+					Name: unit.Name + "-shm",
+					VolumeSource: v1.VolumeSource{
+						EmptyDir: &v1.EmptyDirVolumeSource{
+							Medium:    v1.StorageMediumMemory,
+							SizeLimit: &shmSharedMemory,
 						},
 					},
 				},

@@ -133,5 +133,4 @@ func (r *UnitReconciler) SyncPods() {
 			klog.Errorf("Update Unit Phase Error: %v", err)
 		}
 	}
-
 }

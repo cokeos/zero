@@ -34,7 +34,7 @@ type UnitSpec struct {
 	// ResourceList 资源配额
 	ResourceList v1.ResourceList `json:"resourceList"`
 	// LifeCycle 生命周期
-	LifeCycle LifeCycle `json:"lifeCycle"`
+	// LifeCycle LifeCycle `json:"lifeCycle"`
 	// Ports 端口映射
 	Ports []v1.ContainerPort `json:"ports,omitempty"`
 	// Execution 执行参数
