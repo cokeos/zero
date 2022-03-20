@@ -21,7 +21,12 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog/v2"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 	"time"
 
 	v1 "k8s.io/api/core/v1"
@@ -104,8 +109,30 @@ func (r *UnitReconciler) SetupWithManager(mgr ctrl.Manager, ctx context.Context)
 			go wait.Until(r.SyncPods, UpdatePeriod, ctx.Done())
 		}
 	}()
+
+	podDeleteEvent := handler.Funcs{
+		CreateFunc: func(event event.CreateEvent, limitingInterface workqueue.RateLimitingInterface) {
+			return
+		},
+		UpdateFunc: func(updateEvent event.UpdateEvent, limitingInterface workqueue.RateLimitingInterface) {
+			return
+		},
+		DeleteFunc: func(deleteEvent event.DeleteEvent, limitingInterface workqueue.RateLimitingInterface) {
+			getLabels := deleteEvent.Object.GetLabels()
+			if getLabels == nil {
+				return
+			}
+			if _, ok := getLabels[LabelKey]; ok {
+				limitingInterface.Add(reconcile.Request{NamespacedName: types.NamespacedName{
+					Name:      deleteEvent.Object.GetName(),
+					Namespace: deleteEvent.Object.GetNamespace(),
+				}})
+			}
+		},
+	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&corev1.Unit{}).
+		Watches(&source.Kind{Type: &v1.Pod{}}, podDeleteEvent).
 		Complete(r)
 }
 
